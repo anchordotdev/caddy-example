@@ -1,0 +1,27 @@
+{
+  acme_ca {$ACME_DIRECTORY_URL}
+  email {$ACME_KID}
+  acme_eab {
+    key_id {$ACME_KID}
+    mac_key {$ACME_HMAC_KEY}
+  }
+  admin off
+  renew_interval 1h
+  ocsp_interval 1m
+}
+
+{$DNS_NAME} {
+  handle_path /alice* {
+    # uri strip_prefix /alice
+    reverse_proxy {
+      to http://alice.{$DOMAIN}
+    }
+  }
+
+  handle_path /bob* {
+    # uri strip_prefix /bob
+    reverse_proxy {
+      to http://bob.{$DOMAIN}
+    }
+  }
+}

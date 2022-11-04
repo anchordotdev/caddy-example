@@ -1,0 +1,41 @@
+services:
+  caddy:
+    build:
+      dockerfile: caddy.Dockerfile
+    depends_on:
+      - alice
+      - bob
+    environment:
+      - ACME_DIRECTORY_URL
+      - ACME_KID
+      - ACME_HMAC_KEY
+      - DNS_NAME=api.${DOMAIN}
+      - DOMAIN=${DOMAIN}
+    hostname: 'caddy'
+    ports:
+      - "4430:443"
+    links:
+      - "alice:alice.${DOMAIN}"
+      - "bob:bob.${DOMAIN}"
+  alice:
+    build:
+      dockerfile: caddy.Dockerfile
+    command: ['caddy', 'respond', '--access-log', '--body', '"Hello from Alice"', '--debug', '--listen', ':80']
+    hostname: 'alice'
+    ports:
+      - "8080:80"
+  bob:
+    build:
+      dockerfile: caddy.Dockerfile
+    command: ['caddy', 'respond', '--access-log', '--body', '"Hello from Bob"', '--debug', '--listen', ':80']
+    hostname: 'bob'
+    ports:
+      - "8081:80"
+  client:
+    build:
+      dockerfile: client.Dockerfile
+    depends_on:
+      - caddy
+    hostname: 'client'
+    links:
+      - "caddy:api.${DOMAIN}"
